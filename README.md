@@ -1,23 +1,23 @@
 # Tocomple
 
-Aplicacion Android hecha con Kotlin y Jetpack Compose para calcular completos, planificar produccion y organizar una jornada de venta.
+Aplicación Android hecha con Kotlin y Jetpack Compose para calcular completos, planificar producción y organizar una jornada de venta.
 
-## Que hace
+## Qué hace
 
-- Calcula ingredientes segun tipo de completo y cantidad.
-- Permite planificar produccion diaria en modo `Negocio`.
+- Calcula ingredientes según tipo de completo y cantidad.
+- Permite planificar producción diaria en modo `Negocio`.
 - Maneja costos, precios de venta y rentabilidad estimada.
 - Soporta plantillas de precios y costos.
-- Incluye un modo `Guia` con vista general del dia.
+- Incluye un modo `Guía` con vista general del día.
 - Permite generar un PDF con el resumen operativo.
 
 ## Modos
 
-- `Calculadora`: estima panes, proteinas e ingredientes para un pedido (inspirada en la calculadora de AlpacaSoft).
-- `Negocio`: planifica produccion, compra, costos y ventas.
-- `Guia`: muestra una vista general lista para fabricar o compartir.
+- `Calculadora`: estima panes, proteínas e ingredientes para un pedido (inspirada en la calculadora de AlpacaSoft).
+- `Negocio`: planifica producción, compra, costos y ventas.
+- `Guía`: muestra una vista general lista para fabricar o compartir.
 
-## Tecnologias
+## Tecnologías
 
 - Kotlin
 - Jetpack Compose
