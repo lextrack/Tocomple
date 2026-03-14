@@ -71,6 +71,11 @@ val completoTypes = listOf(
     )
 )
 
+enum class AppSection(val label: String) {
+    CALCULATOR("Calculadora"),
+    BUSINESS("Negocio")
+}
+
 data class CompletoCalculation(
     val completoType: CompletoType,
     val people: Int,
@@ -115,4 +120,40 @@ data class DetailItem(
     val mainValue: String,
     val supporting: String,
     val accent: androidx.compose.ui.graphics.Color
+)
+
+data class BusinessSummary(
+    val totalProducts: Int,
+    val breads: Int,
+    val proteins: List<ProteinTotal>,
+    val ingredients: List<AggregatedIngredient>,
+    val totalCost: Double,
+    val totalRevenue: Double,
+    val totalProfit: Double,
+    val typeCosts: List<BusinessTypeCost>
+)
+
+data class ProteinTotal(
+    val label: String,
+    val count: Int,
+    val singular: String,
+    val plural: String
+)
+
+data class AggregatedIngredient(
+    val name: String,
+    val totalKg: Double,
+    val unitEstimate: Int,
+    val unitLabelSingular: String,
+    val unitLabelPlural: String
+)
+
+data class BusinessTypeCost(
+    val name: String,
+    val quantity: Int,
+    val totalCost: Double,
+    val unitCost: Double,
+    val salePrice: Double,
+    val revenue: Double,
+    val profit: Double
 )
