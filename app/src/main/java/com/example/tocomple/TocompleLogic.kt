@@ -79,8 +79,10 @@ fun buildAssumptionsText(
 fun calculateBusinessSummary(
     plannedQuantities: Map<String, String>,
     smallAvocados: Boolean,
-    breadUnitCostInput: String,
-    proteinUnitCosts: Map<String, String>,
+    breadPackagePriceInput: String,
+    breadUnitsPerPackageInput: String,
+    proteinPackagePrices: Map<String, String>,
+    proteinUnitsPerPackage: Map<String, String>,
     ingredientCostInputs: Map<String, String>,
     salePriceInputs: Map<String, String>
 ): BusinessSummary? {
@@ -137,9 +139,17 @@ fun calculateBusinessSummary(
         )
     }
 
-    val breadUnitCost = breadUnitCostInput.toDoubleOrNull() ?: 0.0
+    val breadUnitCost = calculateUnitCost(
+        packagePriceInput = breadPackagePriceInput,
+        unitsPerPackageInput = breadUnitsPerPackageInput
+    )
     val ingredientCostMap = ingredientCostInputs.mapValues { it.value.toDoubleOrNull() ?: 0.0 }
-    val proteinCostMap = proteinUnitCosts.mapValues { it.value.toDoubleOrNull() ?: 0.0 }
+    val proteinCostMap = proteinPackagePrices.mapValues { (label, packagePrice) ->
+        calculateUnitCost(
+            packagePriceInput = packagePrice,
+            unitsPerPackageInput = proteinUnitsPerPackage[label].orEmpty()
+        )
+    }
     val salePriceMap = salePriceInputs.mapValues { it.value.toDoubleOrNull() ?: 0.0 }
 
     val typeCosts = plannedTypes.map { (completoType, quantity) ->
@@ -172,6 +182,19 @@ fun calculateBusinessSummary(
         totalProfit = typeCosts.sumOf { it.profit },
         typeCosts = typeCosts
     )
+}
+
+private fun calculateUnitCost(
+    packagePriceInput: String,
+    unitsPerPackageInput: String
+): Double {
+    val packagePrice = packagePriceInput.toDoubleOrNull() ?: 0.0
+    val unitsPerPackage = unitsPerPackageInput.toDoubleOrNull() ?: 0.0
+    return if (packagePrice > 0.0 && unitsPerPackage > 0.0) {
+        packagePrice / unitsPerPackage
+    } else {
+        0.0
+    }
 }
 
 private data class MutableAggregatedIngredient(

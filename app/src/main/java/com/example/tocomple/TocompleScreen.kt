@@ -41,9 +41,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.tocomple.ui.theme.BusinessBlue
+import com.example.tocomple.ui.theme.BusinessBlueSoft
+import com.example.tocomple.ui.theme.TomatoRed
 import com.example.tocomple.ui.theme.TocompleTheme
 import kotlinx.coroutines.launch
 
@@ -126,14 +130,7 @@ fun CompletosApp() {
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        brush = Brush.verticalGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                MaterialTheme.colorScheme.background,
-                                MaterialTheme.colorScheme.background,
-                                MaterialTheme.colorScheme.surface
-                            )
-                        )
+                        brush = screenBackgroundBrush(selectedSection)
                     )
                     .verticalScroll(rememberScrollState())
                     .padding(innerPadding)
@@ -169,6 +166,27 @@ fun CompletosApp() {
             }
         }
     }
+}
+
+@Composable
+private fun screenBackgroundBrush(section: AppSection): Brush {
+    val topColor = when (section) {
+        AppSection.CALCULATOR -> TomatoRed.copy(alpha = 0.9f)
+        AppSection.BUSINESS -> BusinessBlue.copy(alpha = 0.9f)
+    }
+    val middleColor = when (section) {
+        AppSection.CALCULATOR -> MaterialTheme.colorScheme.background
+        AppSection.BUSINESS -> BusinessBlueSoft.copy(alpha = 0.32f)
+    }
+
+    return Brush.verticalGradient(
+        listOf(
+            topColor,
+            middleColor,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface
+        )
+    )
 }
 
 @Composable

@@ -157,3 +157,25 @@ data class BusinessTypeCost(
     val revenue: Double,
     val profit: Double
 )
+
+data class BusinessPricingConfig(
+    val breadPackagePrice: String,
+    val breadUnitsPerPackage: String,
+    val proteinPackagePrices: Map<String, String>,
+    val proteinUnitsPerPackage: Map<String, String>,
+    val ingredientCosts: Map<String, String>,
+    val salePrices: Map<String, String>
+)
+
+data class BusinessTemplate(
+    val id: String,
+    val name: String,
+    val pricing: BusinessPricingConfig
+)
+
+data class BusinessPreferencesState(
+    val plannedQuantities: Map<String, String>,
+    val templates: List<BusinessTemplate>,
+    val selectedTemplateId: String,
+    val currentPricing: BusinessPricingConfig
+)
