@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Tocomple</string>
+    <string name="about_title">Acerca de</string>
+    <string name="about_description">Aplicacion para calcular completos, planificar produccion, revisar rentabilidad y generar una guia operativa del dia.</string>
+    <string name="about_developer">Lextrack Studios</string>
+    <string name="about_version">Version %1$s</string>
 </resources>

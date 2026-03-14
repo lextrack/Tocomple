@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tocomple.ui.theme.BusinessBlue
 import com.example.tocomple.ui.theme.BusinessBlueSoft
+import com.example.tocomple.ui.theme.AvocadoSoft
 import com.example.tocomple.ui.theme.MustardGold
 import com.example.tocomple.ui.theme.MustardSoft
 import com.example.tocomple.ui.theme.TomatoRed
@@ -69,7 +72,9 @@ fun CompletosApp() {
                 drawerShape = RoundedCornerShape(topEnd = 28.dp, bottomEnd = 28.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 20.dp),
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(horizontal = 14.dp, vertical = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Column(
@@ -96,7 +101,7 @@ fun CompletosApp() {
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            AppSection.entries.forEach { section ->
+                            AppSection.entries.filter { it != AppSection.ABOUT }.forEach { section ->
                                 NavigationDrawerItem(
                                     label = { Text(section.label) },
                                     selected = selectedSection == section,
@@ -110,6 +115,28 @@ fun CompletosApp() {
                         }
                     }
 
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                        shape = RoundedCornerShape(18.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            NavigationDrawerItem(
+                                label = { Text(AppSection.ABOUT.label) },
+                                selected = selectedSection == AppSection.ABOUT,
+                                onClick = {
+                                    selectedSectionName = AppSection.ABOUT.name
+                                    coroutineScope.launch { drawerState.close() }
+                                },
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                        }
+                    }
+
                     Text(
                         text = when (selectedSection) {
                             AppSection.CALCULATOR ->
@@ -118,6 +145,8 @@ fun CompletosApp() {
                                 "Modo para planificar producción, compra y rentabilidad del día."
                             AppSection.GUIDE ->
                                 "Modo de vista general para fabricar, despachar y revisar resultados."
+                            AppSection.ABOUT ->
+                                "Informacion general de la app, version y desarrollador."
                         },
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.bodySmall,
@@ -167,6 +196,7 @@ fun CompletosApp() {
                         AppSection.CALCULATOR -> CalculatorSection()
                         AppSection.BUSINESS -> BusinessSection()
                         AppSection.GUIDE -> GuideSection()
+                        AppSection.ABOUT -> AboutSection()
                     }
                 }
             }
@@ -180,11 +210,13 @@ private fun screenBackgroundBrush(section: AppSection): Brush {
         AppSection.CALCULATOR -> TomatoRed.copy(alpha = 0.9f)
         AppSection.BUSINESS -> BusinessBlue.copy(alpha = 0.9f)
         AppSection.GUIDE -> MustardGold.copy(alpha = 0.9f)
+        AppSection.ABOUT -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.88f)
     }
     val middleColor = when (section) {
         AppSection.CALCULATOR -> MaterialTheme.colorScheme.background
         AppSection.BUSINESS -> BusinessBlueSoft.copy(alpha = 0.32f)
         AppSection.GUIDE -> MustardSoft.copy(alpha = 0.34f)
+        AppSection.ABOUT -> AvocadoSoft.copy(alpha = 0.38f)
     }
 
     return Brush.verticalGradient(
