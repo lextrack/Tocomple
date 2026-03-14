@@ -45,19 +45,25 @@ class BusinessPreferencesStorage(context: Context) {
             normalizedTemplates.add(0, defaultBusinessTemplate())
         }
 
-        val selectedTemplateId = state?.selectedTemplateId
+        val rawSelectedTemplateId = state?.selectedTemplateId
             ?.takeIf { id -> id == UNSAVED_TEMPLATE_ID || normalizedTemplates.any { it.id == id } }
             ?: DEFAULT_TEMPLATE_ID
+        val normalizedCurrentPricing = normalizePricing(
+            state?.currentPricing
+                ?: normalizedTemplates.firstOrNull { it.id == rawSelectedTemplateId }?.pricing
+                ?: defaultBusinessPricingConfig()
+        )
+        val selectedTemplateId = when {
+            rawSelectedTemplateId != UNSAVED_TEMPLATE_ID -> rawSelectedTemplateId
+            else -> normalizedTemplates.firstOrNull { it.pricing == normalizedCurrentPricing }?.id
+                ?: UNSAVED_TEMPLATE_ID
+        }
 
         return BusinessPreferencesState(
             plannedQuantities = normalizePlannedQuantities(state?.plannedQuantities.orEmpty()),
             templates = normalizedTemplates,
             selectedTemplateId = selectedTemplateId,
-            currentPricing = normalizePricing(
-                state?.currentPricing
-                    ?: normalizedTemplates.firstOrNull { it.id == selectedTemplateId }?.pricing
-                    ?: defaultBusinessPricingConfig()
-            )
+            currentPricing = normalizedCurrentPricing
         )
     }
 

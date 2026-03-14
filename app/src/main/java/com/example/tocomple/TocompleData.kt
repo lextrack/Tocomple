@@ -73,7 +73,8 @@ val completoTypes = listOf(
 
 enum class AppSection(val label: String) {
     CALCULATOR("Calculadora"),
-    BUSINESS("Negocio")
+    BUSINESS("Negocio"),
+    GUIDE("Guía")
 }
 
 data class CompletoCalculation(

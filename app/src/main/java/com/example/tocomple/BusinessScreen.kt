@@ -41,6 +41,7 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.tocomple.ui.theme.AvocadoGreen
 import com.example.tocomple.ui.theme.AvocadoGreenAlt
 
 @Composable
@@ -68,6 +69,7 @@ fun BusinessSection() {
     }
     var templates by remember { mutableStateOf(listOf<BusinessTemplate>()) }
     var selectedTemplateId by rememberSaveable { mutableStateOf(defaultBusinessTemplate().id) }
+    var manualUnsavedSelection by rememberSaveable { mutableStateOf(false) }
     var newTemplateName by rememberSaveable { mutableStateOf("") }
     var hasLoadedBusinessState by remember { mutableStateOf(false) }
     var showTemplatePicker by rememberSaveable { mutableStateOf(false) }
@@ -75,6 +77,13 @@ fun BusinessSection() {
     var financeExpanded by rememberSaveable { mutableStateOf(false) }
     var purchaseExpanded by rememberSaveable { mutableStateOf(false) }
     var profitabilityExpanded by rememberSaveable { mutableStateOf(false) }
+
+    val normalizedTemplates = remember(templates) {
+        val defaultTemplate = defaultBusinessTemplate()
+        val existingDefault = templates.firstOrNull { it.id == defaultTemplate.id } ?: defaultTemplate
+        val withoutDefault = templates.filterNot { it.id == defaultTemplate.id }
+        listOf(existingDefault) + withoutDefault
+    }
 
     LaunchedEffect(storage) {
         val savedState = storage.loadState()
@@ -110,16 +119,24 @@ fun BusinessSection() {
     }
 
     val selectedTemplate = remember(templates, selectedTemplateId) {
-        templates.firstOrNull { it.id == selectedTemplateId }
+        normalizedTemplates.firstOrNull { it.id == selectedTemplateId }
     }
 
     LaunchedEffect(hasLoadedBusinessState, selectedTemplateId, selectedTemplate, currentPricing) {
         if (!hasLoadedBusinessState) return@LaunchedEffect
-        if (selectedTemplateId == UNSAVED_TEMPLATE_ID) return@LaunchedEffect
 
-        val templatePricing = selectedTemplate?.pricing ?: return@LaunchedEffect
-        if (currentPricing != templatePricing) {
-            selectedTemplateId = UNSAVED_TEMPLATE_ID
+        val matchingTemplateId = normalizedTemplates.firstOrNull { it.pricing == currentPricing }?.id
+        val nextTemplateId = when {
+            manualUnsavedSelection && selectedTemplateId == UNSAVED_TEMPLATE_ID -> UNSAVED_TEMPLATE_ID
+            matchingTemplateId != null -> matchingTemplateId
+            else -> UNSAVED_TEMPLATE_ID
+        }
+
+        if (selectedTemplateId != nextTemplateId) {
+            selectedTemplateId = nextTemplateId
+        }
+        if (nextTemplateId != UNSAVED_TEMPLATE_ID) {
+            manualUnsavedSelection = false
         }
     }
 
@@ -135,7 +152,7 @@ fun BusinessSection() {
         storage.saveState(
             BusinessPreferencesState(
                 plannedQuantities = plannedQuantities,
-                templates = templates,
+                templates = normalizedTemplates,
                 selectedTemplateId = selectedTemplateId,
                 currentPricing = currentPricing
             )
@@ -191,13 +208,17 @@ fun BusinessSection() {
         BusinessHeaderCard()
         BusinessSnapshotCard(summary = businessSummary)
         BusinessTemplatesCard(
-            templates = templates,
+            templates = normalizedTemplates,
             selectedTemplateId = selectedTemplateId,
             newTemplateName = newTemplateName,
             onNewTemplateNameChange = { newTemplateName = it.take(18) },
             onOpenTemplatePicker = { showTemplatePicker = true },
-            onUnsavedSelected = { selectedTemplateId = UNSAVED_TEMPLATE_ID },
+            onUnsavedSelected = {
+                manualUnsavedSelection = true
+                selectedTemplateId = UNSAVED_TEMPLATE_ID
+            },
             onTemplateSelected = { template ->
+                manualUnsavedSelection = false
                 selectedTemplateId = template.id
                 breadPackagePrice = template.pricing.breadPackagePrice
                 breadUnitsPerPackage = template.pricing.breadUnitsPerPackage
@@ -211,21 +232,23 @@ fun BusinessSection() {
                 if (cleanName.isBlank()) return@BusinessTemplatesCard
 
                 val newTemplate = BusinessTemplate(
-                    id = sanitizeTemplateId(cleanName, templates.map { it.id }),
-                    name = sanitizeTemplateName(cleanName, templates.map { it.name }),
+                    id = sanitizeTemplateId(cleanName, normalizedTemplates.map { it.id }),
+                    name = sanitizeTemplateName(cleanName, normalizedTemplates.map { it.name }),
                     pricing = currentPricing
                 )
-                templates = templates + newTemplate
+                templates = normalizedTemplates + newTemplate
+                manualUnsavedSelection = false
                 selectedTemplateId = newTemplate.id
                 newTemplateName = ""
             },
             onDeleteTemplate = { templateId ->
                 if (templateId == defaultBusinessTemplate().id) return@BusinessTemplatesCard
 
-                val remainingTemplates = templates.filterNot { it.id == templateId }
+                val remainingTemplates = normalizedTemplates.filterNot { it.id == templateId }
                 templates = remainingTemplates
                 val fallbackTemplate = remainingTemplates.firstOrNull { it.id == defaultBusinessTemplate().id }
                     ?: defaultBusinessTemplate()
+                manualUnsavedSelection = false
                 selectedTemplateId = fallbackTemplate.id
                 breadPackagePrice = fallbackTemplate.pricing.breadPackagePrice
                 breadUnitsPerPackage = fallbackTemplate.pricing.breadUnitsPerPackage
@@ -238,14 +261,16 @@ fun BusinessSection() {
 
         if (showTemplatePicker) {
             TemplatePickerDialog(
-                templates = templates,
+                templates = normalizedTemplates,
                 selectedTemplateId = selectedTemplateId,
                 onDismiss = { showTemplatePicker = false },
                 onUnsavedSelected = {
+                    manualUnsavedSelection = true
                     selectedTemplateId = UNSAVED_TEMPLATE_ID
                     showTemplatePicker = false
                 },
                 onTemplateSelected = { template ->
+                    manualUnsavedSelection = false
                     selectedTemplateId = template.id
                     breadPackagePrice = template.pricing.breadPackagePrice
                     breadUnitsPerPackage = template.pricing.breadUnitsPerPackage
@@ -454,7 +479,12 @@ private fun BusinessTemplatesCard(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "La plantilla activa se va guardando sola mientras editas costos y precios.",
+                text = "Si editas una plantilla, el trabajo actual pasa a Sin plantilla sin pisar la original.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "Si cambias sus valores, deja de estar activa.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -480,7 +510,8 @@ private fun BusinessTemplatesCard(
                                 ?: defaultBusinessTemplate().name
                         },
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = AvocadoGreen
                     )
                 }
                 OutlinedButton(onClick = onOpenTemplatePicker) {

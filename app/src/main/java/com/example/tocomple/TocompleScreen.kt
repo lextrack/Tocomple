@@ -47,6 +47,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tocomple.ui.theme.BusinessBlue
 import com.example.tocomple.ui.theme.BusinessBlueSoft
+import com.example.tocomple.ui.theme.MustardGold
+import com.example.tocomple.ui.theme.MustardSoft
 import com.example.tocomple.ui.theme.TomatoRed
 import com.example.tocomple.ui.theme.TocompleTheme
 import kotlinx.coroutines.launch
@@ -109,10 +111,13 @@ fun CompletosApp() {
                     }
 
                     Text(
-                        text = if (selectedSection == AppSection.CALCULATOR) {
-                            "Modo para calcular ingredientes y cantidades por pedido."
-                        } else {
-                            "Modo para planificar producción, compra y rentabilidad del día."
+                        text = when (selectedSection) {
+                            AppSection.CALCULATOR ->
+                                "Modo para calcular ingredientes y cantidades por pedido."
+                            AppSection.BUSINESS ->
+                                "Modo para planificar producción, compra y rentabilidad del día."
+                            AppSection.GUIDE ->
+                                "Modo de vista general para fabricar, despachar y revisar resultados."
                         },
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.bodySmall,
@@ -161,6 +166,7 @@ fun CompletosApp() {
                     when (section) {
                         AppSection.CALCULATOR -> CalculatorSection()
                         AppSection.BUSINESS -> BusinessSection()
+                        AppSection.GUIDE -> GuideSection()
                     }
                 }
             }
@@ -173,10 +179,12 @@ private fun screenBackgroundBrush(section: AppSection): Brush {
     val topColor = when (section) {
         AppSection.CALCULATOR -> TomatoRed.copy(alpha = 0.9f)
         AppSection.BUSINESS -> BusinessBlue.copy(alpha = 0.9f)
+        AppSection.GUIDE -> MustardGold.copy(alpha = 0.9f)
     }
     val middleColor = when (section) {
         AppSection.CALCULATOR -> MaterialTheme.colorScheme.background
         AppSection.BUSINESS -> BusinessBlueSoft.copy(alpha = 0.32f)
+        AppSection.GUIDE -> MustardSoft.copy(alpha = 0.34f)
     }
 
     return Brush.verticalGradient(
