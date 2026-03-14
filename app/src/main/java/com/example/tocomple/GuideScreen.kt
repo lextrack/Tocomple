@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +34,7 @@ fun GuideSection() {
     val context = LocalContext.current
     val storage = remember(context) { BusinessPreferencesStorage(context) }
     var businessState by remember { mutableStateOf<BusinessPreferencesState?>(null) }
+    var showPdfOptions by remember { mutableStateOf(false) }
 
     LaunchedEffect(storage) {
         businessState = storage.loadState()
@@ -78,10 +81,49 @@ fun GuideSection() {
             GuideDispatchCard(summary = summary)
             GuidePurchaseCard(summary = summary)
             GuidePdfButton(
-                templateName = activeTemplateName,
-                summary = summary,
-                plannedTypes = plannedTypes
+                onClick = { showPdfOptions = true }
             )
+            if (showPdfOptions) {
+                GuidePdfOptionsDialog(
+                    onDismiss = { showPdfOptions = false },
+                    onOpenPdf = {
+                        runCatching {
+                            val pdfUri = exportGuidePdf(
+                                context = context,
+                                templateName = activeTemplateName,
+                                summary = summary,
+                                plannedTypes = plannedTypes
+                            )
+                            openGuidePdf(context, pdfUri)
+                        }.onFailure {
+                            Toast.makeText(
+                                context,
+                                "No pudimos generar el PDF.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        showPdfOptions = false
+                    },
+                    onSharePdf = {
+                        runCatching {
+                            val pdfUri = exportGuidePdf(
+                                context = context,
+                                templateName = activeTemplateName,
+                                summary = summary,
+                                plannedTypes = plannedTypes
+                            )
+                            shareGuidePdf(context, pdfUri)
+                        }.onFailure {
+                            Toast.makeText(
+                                context,
+                                "No pudimos generar el PDF.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        showPdfOptions = false
+                    }
+                )
+            }
         }
     }
 }
@@ -422,32 +464,47 @@ private fun GuideEmptyStateCard() {
 
 @Composable
 private fun GuidePdfButton(
-    templateName: String,
-    summary: BusinessSummary,
-    plannedTypes: List<Pair<CompletoType, Int>>
+    onClick: () -> Unit
 ) {
-    val context = LocalContext.current
-
     Button(
-        onClick = {
-            runCatching {
-                val pdfUri = exportGuidePdf(
-                    context = context,
-                    templateName = templateName,
-                    summary = summary,
-                    plannedTypes = plannedTypes
-                )
-                shareGuidePdf(context, pdfUri)
-            }.onFailure {
-                Toast.makeText(
-                    context,
-                    "No pudimos generar el PDF.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        },
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth()
     ) {
         Text("Generar PDF")
     }
+}
+
+@Composable
+private fun GuidePdfOptionsDialog(
+    onDismiss: () -> Unit,
+    onOpenPdf: () -> Unit,
+    onSharePdf: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "PDF de la guia",
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Text("Elige si quieres abrir el PDF o compartirlo.")
+        },
+        confirmButton = {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = onOpenPdf) {
+                    Text("Ver PDF")
+                }
+                Button(onClick = onSharePdf) {
+                    Text("Compartir")
+                }
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }

@@ -187,3 +187,11 @@ fun shareGuidePdf(context: Context, pdfUri: Uri) {
     }
     context.startActivity(Intent.createChooser(intent, "Compartir guia PDF"))
 }
+
+fun openGuidePdf(context: Context, pdfUri: Uri) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(pdfUri, "application/pdf")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(intent, "Ver guia PDF"))
+}
